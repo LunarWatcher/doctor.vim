@@ -1,55 +1,91 @@
-let s:buffID = -1
+vim9script
 
-let g:DoctorPromptCharacter = "❯"
+# Internal variables {{{
+var buffID = -1
+# }}}
+# Config {{{
+g:DoctorPromptCharacter = "❯"
+# }}}
+# Mode management {{{
 
-" Mode management {{{
-
-fun! doctor#EnterInsert()
+def doctor#EnterInsert()
+    setlocal nomod
     for [variable, _] in b:variables->items()
-        exec 'set no' . variable
+        exec 'set no' .. variable
     endfor
-endfun
+enddef
 
-fun! doctor#LeaveInsert()
+def doctor#LeaveInsert()
+    setlocal nomod
     for [variable, enabled] in b:variables->items()
         if enabled
-            exec 'set ' . variable
+            exec 'set ' .. variable
         endif
     endfor
-endfun
+enddef
 
-" }}}
+# }}}
+# "AI" core {{{
 
-" TODO: figure out how to better integrate this into i.e. `tab command`
-fun! doctor#GenerateBuffer()
-    " New buffer
+
+# }}}
+# Input and buffer management {{{
+def doctor#PromptEnter(text: string)
+    appendbufline(buffID, line('$') - 1, text)
+enddef
+
+def doctor#InitializeResponses()
+    if !exists('b:DoctorData') || type(b:DoctorData) != v:t_dict
+        b:DoctorData = {}
+    endif
+
+    b:DoctorData["doctor-hello"] = [ 
+        'Hello.',
+        'Hi',
+        'Hiya',
+    ]
+
+enddef
+
+# TODO: figure out how to better integrate this into i.e. `tab command`
+def doctor#GenerateBuffer()
+    # New buffer
     vnew
 
-    " Clean up the buffer a bit
+    setlocal noswapfile
+    setlocal bufhidden=hide
+    setlocal nobuflisted
+
+    # Clean up the buffer a bit
     setlocal buftype=prompt
 
-    let b:variables = {
+    b:variables = {
         \ 'number': &number,
         \ 'cul': &cul,
         \ 'cuc': &cuc
     \ }
     
-    let s:buffID = bufnr('%')
+    buffID = bufnr('%')
 
-    " Customize the prompt
-    call prompt_setprompt(s:buffID, g:DoctorPromptCharacter . ' ')
+    # Customize the prompt
+    prompt_setprompt(s:buffID, g:DoctorPromptCharacter .. ' ')
+    prompt_setcallback(s:buffID, function('doctor#PromptEnter'))
 
 
-    " AU group for the buffer {{{
+    # AU group for the buffer {{{
     augroup DoctorVimAUGroup
         au!
 
-        autocmd InsertEnter <buffer> call doctor#EnterInsert()
-        autocmd InsertLeave <buffer> call doctor#LeaveInsert()
-    augroup END
-    " }}}
+        autocmd InsertEnter <buffer> doctor#EnterInsert()
+        autocmd InsertLeave <buffer> doctor#LeaveInsert()
 
-    call setline(1, "This should be text that shows up prior to the prompt")
+    augroup END
+    # }}}
+    
+    doctor#InitializeResponses()
+
+    setline(1, "This should be text that shows up prior to the prompt")
     startinsert
 
-endfun 
+enddef
+# }}}

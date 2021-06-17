@@ -8,9 +8,20 @@ Changelog:
 ================================================================================
 Table of contents~
 
-    1. Table of contents base
+    1. Introduction ............................... |doctor-introduction|
+    2. Customization .............................. |doctor-customization|
 
 ================================================================================
+1. Introduction                                              *doctor-introduction*
 
+Because Emacs isn't the only editor allowed to have fancy stuff.
+
+Requirements~
+
+* Vim with support for |buftype| = prompt (|prompt-buffer|)
+* Vim9 support
+
+================================================================================
+2. Customization                                            *doctor-customization*
 
 vim:ft=help:tw=80
