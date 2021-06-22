@@ -68,7 +68,7 @@ def doctor#ConstructResponse(text: string): list<string>
         return ['At least it isn''t Emacs']
     elseif index(b:DoctorData["doctor-hello"], words[0]) != -1
         if b:DoctorHasSaidHello
-            return ['We''ve already been introduced. ' .. s:random('doctor-problem')]
+            return ['We''ve already been introduced -- ' .. s:random('doctor-problem')]
         else
             b:DoctorHasSaidHello = 1
             return [s:random('doctor-hello') .. '. ' .. s:random('doctor-problem')]
