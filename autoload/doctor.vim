@@ -59,10 +59,20 @@ def doctor#ConstructResponse(text: string): list<string>
     # harder, but we'll see.
     # On the other hand, using the raw input and parsing out relevant
     # bits from that might be easier.
-    var escaped = text->tolower()
+    var escaped = text->tolower()->substitute('\v[,.''"!?:;-]', '', 'gi')
     var words = escaped->split(' ')
+
     if words == ["foo"]
         return ["Bar! " .. s:random("doctor-please") .. ' ' .. s:random("doctor-continue")]
+    elseif escaped =~ '^vim$'
+        return ['At least it isn''t Emacs']
+    elseif index(b:DoctorData["doctor-hello"], words[0]) != -1
+        if b:DoctorHasSaidHello
+            return ['We''ve already been introduced. ' .. s:random('doctor-problem')]
+        else
+            b:DoctorHasSaidHello = 1
+            return [s:random('doctor-hello') .. '. ' .. s:random('doctor-problem')]
+        endif
     elseif index(b:DoctorData["doctor-in-howareyou"], escaped) != -1
         return ["I'm good. " .. s:random("doctor-describe") .. " yourself."]
     else
@@ -92,15 +102,17 @@ def doctor#InitializeResponses()
     # Greetings, salutations, and other crap like that {{{
     b:DoctorData["doctor-hello"] = [
         'hello',
-        'hi',
-        'hiya',
+        'hi', 'hiya',
+        'greetings', 'howdy',
+        'hey', 'heya',
     ]
     b:DoctorData['doctor-intro-fragment'] = [
         () => "I'm " .. g:DoctorName,
-        () => s:random('doctor-problem')
+        () => s:random('doctor-problem'),
     ]
     b:DoctorData['doctor-problem'] = [
-        'What may I do for you today?'
+        'What may I do for you today?',
+        'What seems to be the problem?',
     ]
     # }}}
     # Output fragments{{{
@@ -124,7 +136,8 @@ def doctor#InitializeResponses()
     # }}}
     # Fallbacks {{{
     b:DoctorData["doctor-dontunderstand"] = [
-        "I don't understand"
+        "I don't understand",
+        () => s:random("doctor-problem")
     ]
     # }}}
     # Word processing {{{
@@ -199,6 +212,7 @@ def doctor#GenerateBuffer()
     # }}}
 
     doctor#InitializeResponses()
+    b:DoctorHasSaidHello = 0
 
     doctor#ShowGreeting()
     startinsert
