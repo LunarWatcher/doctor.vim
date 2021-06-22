@@ -59,11 +59,11 @@ def doctor#ConstructResponse(text: string): list<string>
     # harder, but we'll see.
     # On the other hand, using the raw input and parsing out relevant
     # bits from that might be easier.
-    var escaped = text->tolower()->substitute('\v[.,\-!?''"]', "", "gi")
+    var escaped = text->tolower()
     var words = escaped->split(' ')
     if words == ["foo"]
         return ["Bar! " .. s:random("doctor-please") .. ' ' .. s:random("doctor-continue")]
-    elseif index(b:DoctorData["doctor-howareyou"], escaped) != -1
+    elseif index(b:DoctorData["doctor-in-howareyou"], escaped) != -1
         return ["I'm good. " .. s:random("doctor-describe") .. " yourself."]
     else
         return [s:random("doctor-dontunderstand")]
@@ -96,11 +96,11 @@ def doctor#InitializeResponses()
         'hiya',
     ]
     b:DoctorData['doctor-intro-fragment'] = [
-        () => ( "I'm " .. g:DoctorName ),
-        () => ( s:random('doctor-problem') )
+        () => "I'm " .. g:DoctorName,
+        () => s:random('doctor-problem')
     ]
     b:DoctorData['doctor-problem'] = [
-        "What may I do for you today?"
+        'What may I do for you today?'
     ]
     # }}}
     # Output fragments{{{
@@ -108,23 +108,49 @@ def doctor#InitializeResponses()
         'sorry', "I'm sorry", 'I apologize',
     ]
     b:DoctorData["doctor-please"] = [
-        'please'
+        'please',
     ]
-    b:DoctorData["doctor-describe"] = [
+    b:DoctorData["doctor-out-describe"] = [
         'Tell me about', 'Talk about',
         'Discuss', 'Tell me more about',
-        'Elaborate on'
+        'Elaborate on',
     ]
     # }}}
     # Discussion meta {{{
-    b:DoctorData["doctor-howareyou"] = [
-        'how are you',
-        "howre you"
+    b:DoctorData["doctor-in-howareyou"] = [
+        'how are you', 'howre you', "how're you",
+        "how's everything", 'how is everything', 
     ]
     # }}}
     # Fallbacks {{{
     b:DoctorData["doctor-dontunderstand"] = [
         "I don't understand"
+    ]
+    # }}}
+    # Word processing {{{
+    b:DoctorData["pronouns"] = [
+        # Singular (me)
+        'i', 'me', 'mine', 'myself',
+        # Plural (us)
+        'we', 'us', 'ours', 'ourself', 'ourselves',
+        # Plural (specific)
+        'you', 'yours', 'yourself', 'yourselves',
+        # Singular (someone else)
+        'she', 'her', 'hers', 'herself',
+        'he', 'him', 'his', 'himself',
+        'it', 'its', 'itself', # Am I missing one?
+        'they', 'them', 'themself', 'themselves', 'their',  # these are strictly speaking singular
+                                                            # and plural, but typing
+                                                            # them out several times
+                                                            # is unnecessary
+        # Neo (incomplete list - I don't know all potentially relevant ones
+        # and I can't really be arsed to look for them right now)
+        'ze', 'hir', 'hirs', 'hirself',
+        'fae', 'faer', 'faers', 'faerself',
+        # Specifiers
+        'anyone', 'anybody', 'everyone', 'everybody',
+        'someone', 'somebody', 'anything', 'something',
+        'everything', 
     ]
     # }}}
 
